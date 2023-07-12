@@ -24,7 +24,11 @@ public class Tile extends JLabel {
 
         public void PlaceShip(Ship ship) {
             setOpaque(true);
-            setBackground(Color.GRAY);
+            if (ship.ifVisible) {
+                setBackground(Color.GRAY);
+            } else {
+                setBackground(Color.CYAN);
+            }
             this.shipAtThisTile = ship;
         }
 
@@ -52,6 +56,7 @@ public class Tile extends JLabel {
             thisTileIsMarked = true;
             setOpaque(true);
             if (shipAtThisTile != null) {
+                shipAtThisTile.isDead = true;
                 setBackground(Color.RED);
             } else {
                 setBackground(Color.BLUE);
@@ -70,11 +75,15 @@ public class Tile extends JLabel {
             }
             @Override
             public void mouseClicked(MouseEvent e) {
+                if (Game.GameState == 0 && this.type == 1) {
+                    return;
+                }
                 if (this.type == 0) {
                     Game.playerBoard.printPos(new Position(this.x, this.y));
 
                 } else {
                     Game.enemyBoard.printPos(new Position(this.x, this.y));
+                    Game.AIFireBack();
                 }
             }
 
@@ -90,13 +99,12 @@ public class Tile extends JLabel {
 
             @Override
             public void mouseEntered(MouseEvent e) {
-                if (thisTileIsMarked) {
+                Game.userInput.targetTile = new Position(this.x, this.y);
+                if (thisTileIsMarked ||
+                        (Game.GameState == 0 && this.type == 1) ||
+                        (Game.GameState == 1 && this.type == 0)) {
                     return;
                 }
-                if (Game.GameState == 0 && this.type == 1) {
-                    return;
-                }
-                //Game.userInput.targetTile = new Position(this.x , this.y);
                 switch (this.type) {
                     case 0:
                         if (shipAtThisTile == null && Game.GameState == 0) {
@@ -105,6 +113,9 @@ public class Tile extends JLabel {
                         break;
                     case 1:
                         if (shipAtThisTile == null && Game.GameState == 1) {
+                            Game.enemyBoard.RenderHoverTargetToFire(new Position(this.x, this.y));
+                        }
+                        if (shipAtThisTile != null && !shipAtThisTile.ifVisible) {
                             Game.enemyBoard.RenderHoverTargetToFire(new Position(this.x, this.y));
                         }
                         break;
@@ -117,15 +128,24 @@ public class Tile extends JLabel {
                 if (thisTileIsMarked) {
                     return;
                 }
+                if (Game.GameState == 1 && this.type == 0) {
+                    return;
+                }
                 switch (this.type) {
                     case 0:
                         if (shipAtThisTile == null && Game.GameState == 0 && Game.playerBoard.type == 0) {
                             Game.playerBoard.DeleteShipShadow(new Position(this.x, this.y));
                         }
+                        break;
                     case 1:
                         if (shipAtThisTile == null && Game.GameState == 1) {
                             Game.enemyBoard.DeleteTargetToFire(new Position(this.x, this.y));
                         }
+                        if (shipAtThisTile != null && !shipAtThisTile.ifVisible) {
+                            Game.enemyBoard.DeleteTargetToFire(new Position(this.x, this.y));
+                        }
+                        break;
+
                 }
             }
         }

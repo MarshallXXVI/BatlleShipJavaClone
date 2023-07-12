@@ -23,6 +23,10 @@ public class Board {
         thisBoard = new BoardPanel(typ);
     }
 
+    public Tile[][] getField() {
+        return field;
+    }
+
     public static final int[] BOAT_SIZES = {5,4,3,3,2};
     private int indexOfBoat = 0;
 
@@ -60,12 +64,12 @@ public class Board {
         switch (this.type) {
             case 0:
                 if (indexOfBoat < BOAT_SIZES.length) {
-                    placeShip(new Ship(pos, BOAT_SIZES[indexOfBoat], ifVertical), pos);
+                    placeShip(new Ship(pos, BOAT_SIZES[indexOfBoat], ifVertical, true));
                 }
                 if (indexOfBoat == 5) {
                     Game.GameState = Game.GameState + 1;
                     this.ifBoardBattleState = true;
-                    System.out.println("BattleState");
+                    Game.BattleState();
                 }
                 break;
             case 1:
@@ -74,6 +78,9 @@ public class Board {
         }
     }
 
+    public void AIShootPlayer(Position pos) {
+        this.field[pos.x][pos.y].ThisTileIsMark();
+    }
 
     private boolean isValidToPlaceShip(Position pos) {
         if(pos.x < 0 || pos.y < 0) return false;
@@ -96,17 +103,18 @@ public class Board {
             RenderHoverPlacing(pos);
         }
     }
-    public void placeShip(Ship ship, Position pos) {
-        if (!isValidToPlaceShip(pos)) {
+    public void placeShip(Ship ship) {
+        Position tempPos = new Position(ship.gridPosition.x, ship.gridPosition.y);
+        if (!isValidToPlaceShip(tempPos)) {
             return;
         }
-        if (ship.isSideways) {
+        if (ship.isVertical) {
             for (int x = 0; x < ship.segments; x++) { //case just now ship is Vertical.
-                this.field[pos.x + x][pos.y].PlaceShip(ship);
+                this.field[ship.gridPosition.x + x][ship.gridPosition.y].PlaceShip(ship);
             }
         } else {
             for (int y = 0; y < ship.segments; y++) { //case just now ship is Horizontal.
-                this.field[pos.x][pos.y + y].PlaceShip(ship);
+                this.field[ship.gridPosition.x][ship.gridPosition.y + y].PlaceShip(ship);
             }
         }
         indexOfBoat = indexOfBoat + 1;
